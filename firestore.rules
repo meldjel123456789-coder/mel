@@ -1,0 +1,153 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string
+    //   - photoURL: string
+    //   - role: string (required, 'admin' | 'employee')
+    //   - createdAt: timestamp
+    //   - faceDescriptor: number[] (optional)
+    //   - baseSalary: number (optional)
+    //   - workGroup: string ('morning' | 'evening')
+    //
+    // Collection: tasks
+    // Document ID: {taskId}
+    // Fields:
+    //   - title: string (required)
+    //   - status: string (required, 'todo' | 'in-progress' | 'completed')
+    //   - assignedTo: string (required, UID)
+    //
+    // Collection: attendance
+    // Document ID: {attendanceId}
+    // Fields:
+    //   - employeeId: string (required, UID)
+    //   - date: string (required, YYYY-MM-DD)
+    //   - checkIn: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          request.auth.token.email == "meldjel123456789@gmail.com" ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+        );
+    }
+
+    function isValidUser(data) {
+      return data.uid is string &&
+             data.email is string &&
+             data.role in ['admin', 'employee'] &&
+             (!('faceDescriptor' in data) || data.faceDescriptor is list) &&
+             (!('workGroup' in data) || data.workGroup in ['morning', 'evening']) &&
+             (!('baseSalary' in data) || data.baseSalary is number);
+    }
+
+    function isValidTask(data) {
+      return data.title is string && data.title.size() > 0 &&
+             data.status in ['todo', 'in-progress', 'completed'] &&
+             data.assignedTo is string;
+    }
+
+    function isValidAttendance(data) {
+      return data.employeeId is string &&
+             data.date is string && data.date.matches("^\\d{4}-\\d{2}-\\d{2}$") &&
+             data.checkIn is timestamp &&
+             (!('totalHours' in data) || data.totalHours is number) &&
+             (!('overtimeHours' in data) || data.overtimeHours is number);
+    }
+
+    function isValidSettings(data) {
+      return data.workDays is list &&
+             data.workHours is map &&
+             data.overtimeRate is number;
+    }
+
+    function isValidLeaveRequest(data) {
+      return data.employeeId is string &&
+             data.type in ['vacation', 'sick', 'exit-permission'] &&
+             data.startDate is timestamp &&
+             data.endDate is timestamp &&
+             data.status in ['pending', 'approved', 'rejected'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // PII Protection: Only admins or owners can read user details
+      allow read: if isOwner(userId) || isAdmin();
+      // On creation, users can only set their own role to 'employee' if not admin
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (
+        (userId == request.auth.uid && request.resource.data.role == 'employee') || 
+        isAdmin()
+      );
+      // Restricted updates: Users can't change their own role or salary
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (
+        isAdmin() || 
+        (isOwner(userId) && 
+         request.resource.data.role == resource.data.role && 
+         (!('baseSalary' in request.resource.data) || request.resource.data.baseSalary == resource.data.baseSalary))
+      );
+    }
+
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.assignedTo == request.auth.uid);
+      allow create: if isAdmin() && isValidTask(request.resource.data);
+      allow update: if isAuthenticated() && (isAdmin() || (resource.data.assignedTo == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))) && isValidTask(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /attendance/{attendanceId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidAttendance(request.resource.data) && (isOwner(request.resource.data.employeeId) || isAdmin());
+      allow update: if isAuthenticated() && isValidAttendance(request.resource.data) && (isOwner(resource.data.employeeId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidSettings(request.resource.data);
+    }
+
+    match /leaveRequests/{requestId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.employeeId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidLeaveRequest(request.resource.data) && (isOwner(request.resource.data.employeeId) || isAdmin());
+      allow update: if isAdmin() && isValidLeaveRequest(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

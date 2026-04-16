@@ -1,0 +1,6 @@
+{
+  "name": "StaffTrack",
+  "description": "Une application complète de suivi des employés avec gestion des tâches, présence et rapports en temps réel.",
+  "requestFramePermissions": ["geolocation", "camera"],
+  "majorCapabilities": []
+}

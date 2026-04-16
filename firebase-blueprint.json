@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "employee"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLocation": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "source": { "type": "string" }
+          }
+        },
+        "faceDescriptor": { "type": "array", "items": { "type": "number" } },
+        "workGroup": { "type": "string", "enum": ["morning", "evening"] },
+        "baseSalary": { "type": "number" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A task assigned to an employee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["todo", "in-progress", "completed"] },
+        "assignedTo": { "type": "string", "description": "UID of the employee" },
+        "assignedToName": { "type": "string" },
+        "assignedByName": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "status", "assignedTo"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Employee check-in/check-out records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "checkIn": { "type": "string", "format": "date-time" },
+        "checkOut": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["present", "absent", "late"] },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "latitudeOut": { "type": "number" },
+        "longitudeOut": { "type": "number" },
+        "locationSource": { "type": "string" },
+        "locationOutSource": { "type": "string" },
+        "photoIn": { "type": "string" },
+        "photoOut": { "type": "string" },
+        "totalHours": { "type": "number" },
+        "overtimeHours": { "type": "number" },
+        "isLeave": { "type": "boolean" }
+      },
+      "required": ["employeeId", "date", "checkIn"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Alerts for administrators",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["check-in", "check-out"] },
+        "employeeName": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" },
+        "message": { "type": "string" }
+      },
+      "required": ["type", "employeeName", "timestamp", "read"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Tasks collection"
+    },
+    "/attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Attendance records"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Admin notifications"
+    }
+  }
+}

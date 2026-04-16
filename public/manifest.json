@@ -1,0 +1,33 @@
+{
+  "short_name": "StaffTrack",
+  "name": "StaffTrack - Système de Pointage Intelligent",
+  "description": "Gestion des équipes, tâches et présence avec reconnaissance faciale et géolocalisation.",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/stafftrack-192/192/192",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://picsum.photos/seed/stafftrack-512/512/512",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "categories": ["business", "productivity"],
+  "screenshots": [
+    {
+      "src": "https://picsum.photos/seed/st-screen-1/1080/1920",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Tableau de Bord"
+    }
+  ]
+}
