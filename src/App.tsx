@@ -2438,15 +2438,55 @@ function TeamView({ profile }: { profile: UserProfile, key?: string }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {team.map(member => (
-          <div key={member.uid} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-            {member.photoURL && member.photoURL.trim() !== "" ? (
-              <img src={member.photoURL} className="w-12 h-12 rounded-full border border-gray-200" alt="" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                {member.displayName ? member.displayName.charAt(0) : '?'}
-              </div>
-            )}
+        {team.map(member =>{team.map(member => (
+  <div key={member.uid} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+    
+    <div className="flex items-center gap-4">
+      {member.photoURL && member.photoURL.trim() !== "" ? (
+        <img src={member.photoURL} className="w-12 h-12 rounded-full border border-gray-200" alt="" />
+      ) : (
+        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+          {member.displayName ? member.displayName.charAt(0) : '?'}
+        </div>
+      )}
+
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-gray-900 truncate">{member.displayName}</p>
+        <p className="text-sm text-gray-500 truncate">{member.email}</p>
+
+        <span className="inline-block mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+          {member.role}
+        </span>
+      </div>
+    </div>
+
+    <div className="flex gap-2 mt-4">
+      <button
+        onClick={() => {
+          const name = prompt("Nouveau nom :", member.displayName);
+          if(name){
+            updateDoc(doc(db,"users",member.uid), { displayName:name });
+          }
+        }}
+        className="flex-1 bg-blue-500 text-white py-2 rounded-xl text-sm font-bold"
+      >
+        Modifier
+      </button>
+
+      <button
+        onClick={() => {
+          if(confirm("Supprimer cet employé ?")){
+            deleteDoc(doc(db,"users",member.uid));
+          }
+        }}
+        className="flex-1 bg-red-500 text-white py-2 rounded-xl text-sm font-bold"
+      >
+        Supprimer
+      </button>
+    </div>
+
+  </div>
+))}
             <div className="flex-1 min-w-0">
               <p className="font-bold text-gray-900 truncate">{member.displayName}</p>
               <p className="text-sm text-gray-500 truncate">{member.email}</p>

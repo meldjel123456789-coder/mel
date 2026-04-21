@@ -1,0 +1,12 @@
+ Le volume dans le lecteur C n'a pas de nom.
+ Le num‚ro de s‚rie du volume est 9A6F-4047
+
+ R‚pertoire de C:\Users\pc\mel\src
+
+18/04/2026  16:48           124ÿ431 App.tsx
+18/04/2026  16:48               586 main.tsx
+               2 fichier(s)          125ÿ017 octets
+
+     Total des fichiers list‚sÿ:
+               2 fichier(s)          125ÿ017 octets
+               0 R‚p(s)  130ÿ465ÿ546ÿ240 octets libres
