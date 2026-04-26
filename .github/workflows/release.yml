@@ -11,11 +11,15 @@ runs-on: windows-latest
 
 steps:
   - uses: actions/checkout@v4
+
   - uses: actions/setup-node@v4
     with:
       node-version: 20
+
   - run: npm install
+
   - run: npm run build
+
   - uses: softprops/action-gh-release@v2
     with:
       files: dist/*
